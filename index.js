@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import teachersRouter from './routes/teachersRoute.js';
 
 let students = [
@@ -19,6 +20,7 @@ const PORT = 5000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 
 app.get('/', (req, res) => {
     console.log("at / -> get");

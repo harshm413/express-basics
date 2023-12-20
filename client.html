@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React with Babel and Axios Example</title>
+</head>
+
+<body>
+
+    <div id="root"></div>
+
+    <!-- React scripts -->
+    <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+
+    <!-- Axios script -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!-- Babel scripts -->
+    <script crossorigin src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <script type="text/babel">
+        // Your components go here
+        function Student({
+            id, name, age, grade
+        }) {
+            return (
+                <div>
+                    <p>ID: {id}</p>
+                    <p>Name: {name}</p>
+                    <p>Age: {age}</p>
+                    <p>Grade: {grade}</p>
+                    <hr />
+                </div >
+            );
+        }
+        function ComponentA() {
+            const [students, setStudents] = React.useState([]);
+
+            React.useEffect(() => {
+                // Make an Axios request when the component mounts
+                axios.get('http://localhost:5000/students')
+                    .then(response => {
+                        setStudents(response.data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data:', error);
+                    });
+            }, []);
+
+            return (
+                <div>
+                    <h2>Student List</h2>
+                    {/* Render each student using the Student component */}
+                    {students.map(student => (
+                        <Student key={student.id} {...student} />
+                    ))}
+                </div>
+            )
+        }
+
+        function ComponentB() {
+            const [studentId, setStudentId] = React.useState('');
+            const [student, setStudent] = React.useState(null);
+
+
+            function fetchStudentDetails(studentId) {
+                axios.get(`http://localhost:5000/students/${studentId}`)
+                    .then((response) => {
+                        setStudent(response.data);
+                    })
+
+            }
+            function handleFormSubmit(e) {
+                e.preventDefault();
+                fetchStudentDetails(studentId)
+            }
+            function FormComponent() {
+                return (
+                    <form onSubmit={handleFormSubmit}>
+                        <label>
+                            Enter Student ID:
+                        <input
+                                type="number"
+                                value={studentId}
+                                onChange={(e) => setStudentId(e.target.value)}
+                            />
+                        </label>
+                        <button type="submit">Fetch Student Details</button>
+                    </form>
+                );
+            }
+            return (
+                <div>
+                    {!student && <FormComponent />}
+                    {student && (
+                        <div>
+                            <h2>Student</h2>
+                            <Student key={student.id} {...student} />
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        function ComponentC() {
+            const [success, setSuccess] = React.useState(false);
+
+            function handleFormSubmit(e) {
+                e.preventDefault();
+                const formData = {
+                    name: e.target.name.value,
+                    age: e.target.age.value,
+                    grade: e.target.grade.value
+                }
+                axios.post('http://localhost:5000/students', formData)
+                    .then((response) => {
+                        console.log('New student added:', response.data);
+                        setSuccess(true);
+                    })
+                    .catch((error) => {
+                        console.error('Error adding new student:', error);
+                    });
+            }
+
+            function FormComponent() {
+                return (
+                    <form onSubmit={handleFormSubmit}>
+                        <label>
+                            Name:
+                    <input
+                                name="name"
+                                type="text"
+                            />
+                        </label>
+                        <label>
+                            Age:
+                    <input
+                                name="age"
+                                type="number"
+                            />
+                        </label>
+                        <label>
+                            Grade:
+                    <input
+                                name="grade"
+                                type="text"
+                            />
+                        </label>
+                        <button type="submit">Add Student</button>
+                    </form>
+                );
+            }
+
+            return (
+                <div>
+                    {!success && <FormComponent />}
+                    {success && <p>Student added successfully!</p>}
+                </div>
+            );
+        }
+
+
+        function ComponentD() {
+            const [studentId, setStudentId] = React.useState('');
+            const [deleted, setDeleted] = React.useState(false);
+
+            const handleFormSubmit = (e) => {
+                e.preventDefault();
+
+                // Send a DELETE request to delete the student
+                axios.delete(`http://localhost:5000/students/${studentId}`)
+                    .then(() => {
+                        console.log(`Student with ID ${studentId} deleted`);
+                        setDeleted(true);
+                    })
+                    .catch((error) => {
+                        console.error('Error deleting student:', error);
+                    });
+            };
+
+            const FormComponent = () => (
+                <form onSubmit={handleFormSubmit}>
+                    <label>
+                        Student ID:
+                <input
+                            type="number"
+                            value={studentId}
+                            onChange={(e) => setStudentId(e.target.value)}
+                        />
+                    </label>
+                    <button type="submit">Delete Student</button>
+                </form>
+            );
+
+            return (
+                <div>
+                    {!deleted && <FormComponent />}
+                    {deleted && <p>Student deleted successfully!</p>}
+                </div>
+            );
+        }
+
+        // Your function-based React component goes here
+        function MyComponent() {
+            const [selectedComponent, setSelectedComponent] = React.useState(null);
+
+            const renderComponent = (component) => {
+                setSelectedComponent(component);
+            };
+
+            return (
+                <div>
+                    <h2>Server Frontend</h2>
+                    <p>Made using React and Axios included in HTML file with script tag.</p>
+                    {/* Render buttons and handle component rendering */}
+                    <button onClick={() => renderComponent(<ComponentA />)}>Show all student</button>
+                    <button onClick={() => renderComponent(<ComponentB />)}>Show a specific student</button>
+                    <button onClick={() => renderComponent(<ComponentC />)}>Add a student</button>
+                    <button onClick={() => renderComponent(<ComponentD />)}>Delete a student</button>
+                    {/* Render the selected component */}
+                    {selectedComponent}
+                </div>
+            );
+        }
+        // Render the component to the root element
+        ReactDOM.render(<MyComponent />, document.getElementById('root'));
+    </script>
+
+</body>
+
+</html>
